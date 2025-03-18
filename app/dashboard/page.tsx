@@ -19,6 +19,20 @@ function DashboardPage() {
           <p className="text-gray-600 max-w-md mx-auto">
             Start a new chat or select an existing one to get started.
           </p>
+          <div className="pt-2 flex justify-center gap-4 text-sm text-gray-500">
+            <div className="inline-flex items-center gap-1.5">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              Real-time responses
+            </div>
+            <div className="inline-flex items-center gap-1.5">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              Smart assistance
+            </div>
+            <div className="inline-flex items-center gap-1.5">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              Powerful tools
+            </div>
+          </div>
           </div>
         </div>
       </div>

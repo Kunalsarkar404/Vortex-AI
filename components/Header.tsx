@@ -18,7 +18,7 @@ function Header() {
                         <HamburgerMenuIcon className="h-5 w-5" />
                     </Button>
                     <div className="font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                        Chat with an AI Agent
+                        Vortex AI
                     </div>
                 </div>
                 <div className="flex items-center">
