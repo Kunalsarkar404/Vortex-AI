@@ -2,8 +2,9 @@
 
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
+import { ChatRequestBody } from "@/lib/types";
 
 interface chatInterfaceProps {
     chatId: Id<"chats">;
@@ -13,17 +14,74 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
     const [messages, setMessages] = useState<Doc<"messages">[]>(initialMessages);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const handleSubmit = (e: React.FormEvent) => {
+    const [streamedResponse, setStreamResponse] = useState("");
+    const [currentTool, setCurrentTool] = useState<{
+        name: string;
+        input: unknown;
+    } | null>(null);
+
+    const messageEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, streamedResponse]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim()) return;
+        const trimmedInput = input.trim();
+        if (!trimmedInput || isLoading) return;
         setIsLoading(true);
         setInput("");
+        setCurrentTool(null);
+        setStreamResponse("");
+
+        const optimisticUserMessage: Doc<"messages"> = {
+            _id: `temp_${Date.now()}`,
+            chatId,
+            content: trimmedInput,
+            role: "user",
+            createdAt: Date.now(),
+        } as Doc<"messages">;
+
+        setMessages((prev) => [...prev, optimisticUserMessage])
+
+        let fullResponse = "";
+        try {
+            const requestBody: ChatRequestBody = {
+                messages: messages.map((msg) => ({
+                    role: msg.role,
+                    content: msg.content,
+                })),
+                newMessage: trimmedInput,
+                chatId,
+            }
+
+            const response = await fetch("api/chat/stream", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody),
+            })
+
+            if (!response.ok) throw new Error(await response.text());
+            if (!response.body) throw new Error("No response body available");
+        } catch (error) {
+            console.log("Error sending message:", error);
+            setMessages((prev) =>
+                prev.filter((msg) => msg._id !== optimisticUserMessage._id)
+            );
+            setStreamResponse("error");
+        } finally {
+            setIsLoading(false);
+        }
     }
     return (
         <main className="flex flex-col h-[calc(100vh-theme(spacing.14))]">
             {/* Message */}
             <section className="flex-1">
-
+                <div>
+                    {/* Last Message */}
+                    <div ref={messageEndRef} />
+                </div>
             </section>
             <footer className="border-t bg-white p-4">
                 <form onSubmit={handleSubmit} className="max-w-4xl mx-auto relative">
