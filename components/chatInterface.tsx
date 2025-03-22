@@ -4,7 +4,11 @@ import { Id, Doc } from "@/convex/_generated/dataModel";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
-import { ChatRequestBody } from "@/lib/types";
+import { ChatRequestBody, StreamMessageType } from "@/lib/types";
+import { createSSEParser } from "@/lib/createSSEParser";
+import { getConvexClient } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
+import { tool } from "@langchain/core/tools";
 
 interface chatInterfaceProps {
     chatId: Id<"chats">;
@@ -21,6 +25,38 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
     } | null>(null);
 
     const messageEndRef = useRef<HTMLDivElement>(null);
+
+    const formatTerminalOutput = (
+        tool: string,
+        input: unknown,
+        output: unknown
+    ) => {
+        const terminalHtml = `<div class="bg-[#1e1e1e] text-white font-mono p-2 rounded-md my-2 overflow-x-auto whitespace-normal max-w-[600px]">
+        <div class="flex items-center gap-1.5 border-b border-gray-700 pb-1">
+            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+            ${tool}
+        </div>
+        <div class="text-gray-400 mt-1">$ input</div>
+        <pre class="text-gray-700" mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(input)}</pre>
+        <div class="text-gray-400 mt-2">$ output</div>
+        <pre class="text-gray-600" mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(output)}</pre>
+        </div>`;
+
+        return `---START---\n${terminalHtml}\n---END---`;
+    }
+
+    const processStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, onChunk: (chunk: string) => Promise<void>) => {
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = new TextDecoder().decode(value);
+                await onChunk(chunk);
+            }
+        } finally {
+            reader.releaseLock();
+        }
+    }
 
     useEffect(() => {
         messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -64,6 +100,74 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
 
             if (!response.ok) throw new Error(await response.text());
             if (!response.body) throw new Error("No response body available");
+
+            //Handle the stream
+            const parser = createSSEParser();
+            const reader = response.body.getReader();
+
+            //Process the stream chunk
+            await processStream(reader, async (chunk) => {
+                const messages = parser.parse(chunk);
+                for (const message of messages) {
+                    switch (message.type) {
+                        case StreamMessageType.Token:
+                            if ("token" in message) {
+                                fullResponse += message.token;
+                                setStreamResponse(fullResponse);
+                            }
+                            break;
+                        case StreamMessageType.ToolStart:
+                            if ("tool" in message) {
+                                setCurrentTool({
+                                    name: message.tool,
+                                    input: message.input,
+                                });
+                                fullResponse += formatTerminalOutput(message.tool, message.input), "Processing...";
+                                setStreamResponse(fullResponse);
+                            }
+                            break;
+                        case StreamMessageType.ToolEnd:
+                            if ("tool" in message && currentTool) {
+                                const lastTerminalIndex = fullResponse.lastIndexOf(
+                                    '<div class="bg-[#1e1e1e]'
+                                );
+                                if (lastTerminalIndex !== -1) {
+                                    fullResponse = fullResponse.substring(0, lastTerminalIndex) + formatTerminalOutput(message.tool, currentTool.input, message.output);
+                                    setStreamResponse(fullResponse);
+                                }
+                                setCurrentTool(null);
+                            }
+                            break;
+                        case StreamMessageType.Error:
+                            if ("error" in message) {
+                                throw new Error(message.error);
+                            }
+                            break;
+                        case StreamMessageType.Done:
+                            //Handle completion of the entire response
+                            const assistantMessage: Doc<"messages"> = {
+                                _id: `temp_assistant_${Date.now()}`,
+                                chatId,
+                                content: fullResponse,
+                                role: "assistant",
+                                createdAt: Date.now(),
+                            } as Doc<"messages">;
+                            //Save the complete message to the database
+                            const convex = getConvexClient();
+                            await convex.mutation(api.messages.store, {
+                                chatId,
+                                content: fullResponse,
+                                role: "assistant",
+                            });
+
+                            setMessages((prev) => [...prev, assistantMessage]);
+                            setStreamResponse("");
+                            return;
+                        default:
+                            break;
+                    }
+                }
+            });
         } catch (error) {
             console.log("Error sending message:", error);
             setMessages((prev) =>
