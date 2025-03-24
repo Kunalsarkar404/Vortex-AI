@@ -19,7 +19,7 @@ const Sidebar = () => {
 
     const handleNewChat = async () => {
         const chatId = await createChat({ title: "New Chat" });
-        // router.push(`/dashboard/chat/${chatId}`)
+        router.push(`/dashboard/chat/${chatId}`)
         closeMobileNav();
     }
 

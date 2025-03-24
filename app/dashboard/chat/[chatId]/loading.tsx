@@ -9,10 +9,10 @@ export default function Loading() {
                         {[...Array(numMessages)].map((_, i) => (
                             <div key={i} className={`flex ${i % 2 === 0 ? "justify-end" : "justify-start"}`}>
                                 <div className={`w-2/3 rounded-2xl p-4 ${i%2===0 ? "bg-blue-600/10 rounded-br-none":"bg-white rounded-bl-none border-gray-200"}`}>
-                                <div className="space-y-3">
-                                    <div className={`h-4 animate-pulse rounded w-[90%] ${i%2 === 0? "bg-white/40":"bg-gray-200"}`}/>
-                                    <div className={`h-4 animate-pulse rounded w-[75%] ${i%2 === 0? "bg-white/40":"bg-gray-200"}`}/>
-                                    <div className={`h-4 animate-pulse rounded w-[60%] ${i%2 === 0? "bg-white/40":"bg-gray-200"}`}/>
+                                <div className="space-y-3 h-1">
+                                    <div className={`h-4 animate-pulse rounded w-[90%] ${i%2 === 0? "bg-white/40":"bg-gray-300"}`}/>
+                                    <div className={`h-4 animate-pulse rounded w-[75%] ${i%2 === 0? "bg-white/40":"bg-gray-300"}`}/>
+                                    <div className={`h-4 animate-pulse rounded w-[60%] ${i%2 === 0? "bg-white/40":"bg-gray-300"}`}/>
                                 </div>
                                 </div>
                             </div>

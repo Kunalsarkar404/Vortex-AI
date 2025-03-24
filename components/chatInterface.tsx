@@ -8,13 +8,13 @@ import { ChatRequestBody, StreamMessageType } from "@/lib/types";
 import { createSSEParser } from "@/lib/createSSEParser";
 import { getConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
-import { tool } from "@langchain/core/tools";
+import MessageBubble from "./MessageBubble";
 
 interface chatInterfaceProps {
     chatId: Id<"chats">;
     initialMessages: Doc<"messages">[];
 }
-const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => {
+const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
     const [messages, setMessages] = useState<Doc<"messages">[]>(initialMessages);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +26,13 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
 
     const messageEndRef = useRef<HTMLDivElement>(null);
 
+    const formatToolOutput = (output: unknown): string => {
+        if (typeof output === "string") {
+            return output;
+        }
+        return JSON.stringify(output, null, 2);
+    }
+
     const formatTerminalOutput = (
         tool: string,
         input: unknown,
@@ -36,10 +43,10 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
             <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
             ${tool}
         </div>
-        <div class="text-gray-400 mt-1">$ input</div>
-        <pre class="text-gray-700" mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(input)}</pre>
-        <div class="text-gray-400 mt-2">$ output</div>
-        <pre class="text-gray-600" mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(output)}</pre>
+        <div className="text-gray-400 mt-1">$ input</div>
+        <pre className="text-gray-700" mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(input)}</pre>
+        <div className="text-gray-400 mt-2">$ output</div>
+        <pre className="text-gray-600" mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(output)}</pre>
         </div>`;
 
         return `---START---\n${terminalHtml}\n---END---`;
@@ -53,6 +60,9 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
                 const chunk = new TextDecoder().decode(value);
                 await onChunk(chunk);
             }
+        }
+        catch (error) {
+            console.error("Error processing stream:", error);
         } finally {
             reader.releaseLock();
         }
@@ -92,7 +102,7 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
                 chatId,
             }
 
-            const response = await fetch("api/chat/stream", {
+            const response = await fetch("/api/chat/stream", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody),
@@ -119,10 +129,10 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
                         case StreamMessageType.ToolStart:
                             if ("tool" in message) {
                                 setCurrentTool({
-                                    name: message.tool,
+                                    name: message.tool as string,
                                     input: message.input,
                                 });
-                                fullResponse += formatTerminalOutput(message.tool, message.input), "Processing...";
+                                fullResponse += formatTerminalOutput(message.tool as string, message.input, "Processing...");
                                 setStreamResponse(fullResponse);
                             }
                             break;
@@ -132,7 +142,7 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
                                     '<div class="bg-[#1e1e1e]'
                                 );
                                 if (lastTerminalIndex !== -1) {
-                                    fullResponse = fullResponse.substring(0, lastTerminalIndex) + formatTerminalOutput(message.tool, currentTool.input, message.output);
+                                    fullResponse = fullResponse.substring(0, lastTerminalIndex) + formatTerminalOutput(message.tool as string, currentTool.input, message.output);
                                     setStreamResponse(fullResponse);
                                 }
                                 setCurrentTool(null);
@@ -173,7 +183,9 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
             setMessages((prev) =>
                 prev.filter((msg) => msg._id !== optimisticUserMessage._id)
             );
-            setStreamResponse("error");
+            setStreamResponse(
+                formatTerminalOutput("Error", "Failed to process message", error instanceof Error ? error.message : "Unknown error")
+            );
         } finally {
             setIsLoading(false);
         }
@@ -181,8 +193,27 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
     return (
         <main className="flex flex-col h-[calc(100vh-theme(spacing.14))]">
             {/* Message */}
-            <section className="flex-1">
-                <div>
+            <section className="flex-1 overflow-y-auto bg-gray-50 p-2 md:p-0">
+                <div className="max-w-4xl mx-auto space-y-3">
+                    {messages?.map((message: Doc<"messages">) => (
+                        <MessageBubble key={message._id} content={message.content} isUser={message.role === "user"} />
+                    ))}
+
+                    {streamedResponse && <MessageBubble content={streamedResponse} />}
+
+                    {/* Loading indicator */}
+                    {isLoading && !streamedResponse && (
+                        <div className="flex justify-start animate-in fade-in-0">
+                            <div className="rounded-2xl px-4 py-3 bg-white text-gray-900 rounded-bl-none shadow-sm ring-1 ring-inset ring-gray-200">
+                                <div className="flex items-center gap-1.5">
+                                    {[0.3, 0.15, 0].map((delay, i) => (
+                                        <div key={i} className="h-1 w-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: `-${delay}s` }} />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Last Message */}
                     <div ref={messageEndRef} />
                 </div>
@@ -206,4 +237,4 @@ const chatInterfaceProps = ({ chatId, initialMessages }: chatInterfaceProps) => 
     )
 }
 
-export default chatInterfaceProps
+export default chatInterface

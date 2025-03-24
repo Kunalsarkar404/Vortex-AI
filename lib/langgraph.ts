@@ -49,18 +49,18 @@ export const initialiseModal = () => {
                     console.log("LLM ended", output);
                     const usage = output.llmOutput?.usage;
                     if (usage) {
-                        // console.log("Token Usage:", {
-                        //     input_tokens: usage.input_tokens,
-                        //     output_tokens: usage.output_tokens,
-                        //     total_tokens: usage.input_tokens + usage.output_tokens,
-                        //     cache_creation_input_tokens: usage.cache_creation_input_tokens || 0,
-                        //     cache_read_input_tokens: usage.cache_read_input_tokens || 0,
-                        // });
+                        console.log("Token Usage:", {
+                            input_tokens: usage.input_tokens,
+                            output_tokens: usage.output_tokens,
+                            total_tokens: usage.input_tokens + usage.output_tokens,
+                            cache_creation_input_tokens: usage.cache_creation_input_tokens || 0,
+                            cache_read_input_tokens: usage.cache_read_input_tokens || 0,
+                        });
                     }
                 },
-                // handleLLMNewToken: async (token: string) => {
-                //     console.log("New token:", token);
-                // },
+                handleLLMNewToken: async (token: string) => {
+                    console.log("New token:", token);
+                },
             }
         ]
     }).bindTools(tools);
