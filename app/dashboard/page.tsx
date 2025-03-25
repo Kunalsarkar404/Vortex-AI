@@ -14,7 +14,7 @@ function DashboardPage() {
             <BotIcon className="w-12 h-12 text-gray-600"/>
           </div>
           <h2 className="text-2xl font-semibold bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-transparent">
-            Welcome to the AI Agent Chat
+          Welcome to Vortex AI
           </h2>
           <p className="text-gray-600 max-w-md mx-auto">
             Start a new chat or select an existing one to get started.

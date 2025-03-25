@@ -9,7 +9,7 @@ import { threadId } from "worker_threads";
 
 //Trim the mesage to manage conversation history
 const trimmer = trimMessages({
-    maxTokens: 10,
+    maxTokens: 200,
     strategy: "last",
     tokenCounter: (message) => message.length,
     includeSystem: true,
@@ -33,12 +33,13 @@ export const initialiseModal = () => {
         model: "claude-3-5-sonnet-20241022",
         anthropicApiKey: process.env.ANTHROPIC_API_KEY,
         temperature: 0.7, //Higher temperature for more creative responses
-        maxTokens: 1024, //Higher maxTokens for longer responses
+        maxTokens: 1500, //Higher maxTokens for longer responses
         streaming: true, //Enable streaming for real-time updates
         clientOptions: {
             defaultHeaders: {
                 "anthropic-beta": "prompt-caching-2024-07-31",
             },
+            timeout: 30000,
         },
         callbacks: [
             {
@@ -135,7 +136,7 @@ function addCacheHeaders(messages: BaseMessage[]): BaseMessage[] {
     return cacheMessages;
 }
 
-export async function submitQuestion(messages: BaseMessage[], chatId: string) {
+export async function submitQuestion(messages: BaseMessage[], chatId: string, maxRetries = 3, baseDelay = 1000) {
     //Add caching headers to messages
     const cacheMessages = addCacheHeaders(messages);
     console.log("Messages:", messages);
@@ -147,18 +148,28 @@ export async function submitQuestion(messages: BaseMessage[], chatId: string) {
     const app = workflow.compile({ checkpointer: checkpoint });
 
     //Run the graph and stream
-    const stream = await app.streamEvents(
-        {
-            messages,
-        },
-        {
-            version: "v2",
-            configurable: {
-                thread_id: chatId,
-            },
-            streamMode: "messages",
-            runId: chatId,
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const stream = await app.streamEvents(
+                { messages },
+                {
+                    version: "v2",
+                    configurable: {
+                        thread_id: chatId,
+                    },
+                    streamMode: "messages",
+                    runId: chatId,
+                }
+            );
+            return stream;
+        } catch (error) {
+            if (attempt === maxRetries) {
+                console.error("Max retries reached. Final error:", error);
+                throw error;
+            }
+            
+            console.warn(`Attempt ${attempt} failed. Retrying in ${attempt * 1000}ms...`);
+            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
         }
-    );
-    return stream;
+    }
 }

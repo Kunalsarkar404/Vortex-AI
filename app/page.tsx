@@ -14,19 +14,19 @@ export default function LandingPage() {
     <section className="w-full px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8
     flex flex-col items-center space-y-10 text-center">
       {/* Hero content */}
-      <header className="space-y-6">
-        <h1 className="text-5xl font-bold tracking-tight sm:text-7xl
-        bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
-          AI Agent Assistant
-        </h1>
-        <p className="max-w-[600px] text-lg text-gray-600 md:text-xl/relaxed xl:text-2xl/relaxed">
-          Meet your new AI chat companion that goes beyond conversation - it can actually get things done!
-          <br/>
-          <span className="text-gray-400 text-sm">
-            Powered by IBM&apos;s WxTools & your favourite LLM&apos;s.
-          </span>
-        </p>
-      </header>
+      <header className="w-full max-w-3xl text-center space-y-6">
+  <h1 className="text-5xl font-bold tracking-tight sm:text-7xl 
+  bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+    Vortex AI Agent
+  </h1>
+  <p className="max-w-2xl mx-auto text-lg text-gray-600 md:text-xl/relaxed xl:text-2xl/relaxed">
+    Vortex AI is more than just a chatbot—it's an intelligent assistant that helps you get things done efficiently.
+  </p>
+  <p className="text-gray-400 text-sm max-w-md mx-auto">
+  Powered by IBM&apos;s WxTools & Claude 3.5.
+  </p>
+</header>
+
 
       <SignedIn>
         <Link href="/dashboard">
