@@ -62,6 +62,9 @@ export async function POST(req: Request) {
                 try {
                     //Create the event stream
                     const eventStream = await submitQuestion(langchainMessages, chatId);
+                    if (!eventStream) {
+                        throw new Error("Failed to create event stream");
+                    }
                     for await (const event of eventStream) {
                         if (event.event === 'on_chat_model_stream') {
                             const token = event.data.chunk;
