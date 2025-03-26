@@ -16,9 +16,9 @@ export const createSSEParser = () => {
                 return Object.values(StreamMessageType).includes(parsed.type)
                     ? parsed
                     : null;
-            } catch (error) {
+            } catch {
                 return {type: StreamMessageType.Error, error: "Failed to parse SSE message"};
-            }
+            }   
         }).filter((msg): msg is StreamMessage => msg !== null);
     }
     return {parse};

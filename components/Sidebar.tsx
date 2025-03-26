@@ -49,7 +49,7 @@ border-gray-200/50 shadow-sm hover:shadow transition-all duration-200'>
                     </Button>
                 </div>
                 <div className='flex-1 overflow-y-auto space-y-2.5 p-4 scrollbar-thin scrollbar-thumb-gray-200 scroll-track-transparent'>
-                    {chats?.map((chat) => (
+                    {chats?.slice().reverse().map((chat) => (
                         <ChatRow key={chat._id} chat={chat} onDelete={handleDeleteChat} />
                     ))}
                 </div>

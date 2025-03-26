@@ -4,7 +4,6 @@ import { submitQuestion } from "@/lib/langgraph";
 import { ChatRequestBody, SSE_DATA_PREFIX, SSE_LINE_DELIMITER, StreamMessage, StreamMessageType } from "@/lib/types";
 import { auth } from "@clerk/nextjs/server";
 import { AIMessage, HumanMessage, ToolMessage } from "@langchain/core/messages";
-import { tool } from "@langchain/core/tools";
 import { NextResponse } from "next/server";
 
 function sendSSEMessage(

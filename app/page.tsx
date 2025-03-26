@@ -1,8 +1,6 @@
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
-import { title } from "process";
 
 export default function LandingPage() {
   return (
@@ -20,7 +18,7 @@ export default function LandingPage() {
     Vortex AI Agent
   </h1>
   <p className="max-w-2xl mx-auto text-lg text-gray-600 md:text-xl/relaxed xl:text-2xl/relaxed">
-    Vortex AI is more than just a chatbot—it's an intelligent assistant that helps you get things done efficiently.
+    Vortex AI is more than just a chatbot, it&apos;s an intelligent assistant that helps you get things done efficiently.
   </p>
   <p className="text-gray-400 text-sm max-w-md mx-auto">
   Powered by IBM&apos;s WxTools & Claude 3.5.
@@ -46,7 +44,7 @@ export default function LandingPage() {
         <button className="group relative inline-flex items-center justify-center px-8 py-3.5 text-base font-medium text-white
         bg-gradient-to-r from-gray-900 to-gray-800 rounded-full hover:from-gray-800 hover:to-gray-700 transition-all duration-200 
         shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-          Sign Up
+          Sign In
           <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:transalte-x-0.5"/>
           <div className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900/20 to-gray-800/20 blur-xl opacity-0 
           group-hover:opacity-100 transition-opacity"/>

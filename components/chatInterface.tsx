@@ -9,16 +9,17 @@ import { createSSEParser } from "@/lib/createSSEParser";
 import { getConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import MessageBubble from "./MessageBubble";
+import WelcomeMessage from "./WelcomeMessage";
 
 interface chatInterfaceProps {
     chatId: Id<"chats">;
     initialMessages: Doc<"messages">[];
 }
-const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
+const ChatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
     const [messages, setMessages] = useState<Doc<"messages">[]>(initialMessages);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [streamedResponse, setStreamResponse] = useState("");
+    const [streamedResponse, setStreamedResponse] = useState("");
     const [currentTool, setCurrentTool] = useState<{
         name: string;
         input: unknown;
@@ -43,10 +44,10 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
             <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
             ${tool}
         </div>
-        <div className="text-gray-400 mt-1">$ input</div>
-        <pre className="text-gray-700" mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(input)}</pre>
-        <div className="text-gray-400 mt-2">$ output</div>
-        <pre className="text-gray-600" mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(output)}</pre>
+        <div class="text-gray-400 mt-1">$ input</div>
+        <pre class="text-gray-700 mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(input)}</pre>
+        <div class="text-gray-400 mt-2">$ output</div>
+        <pre class="text-gray-600 mt-0.5 whitespace-pre-wrap overflow-x-auto">${formatToolOutput(output)}</pre>
         </div>`;
 
         return `---START---\n${terminalHtml}\n---END---`;
@@ -79,7 +80,7 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
         setIsLoading(true);
         setInput("");
         setCurrentTool(null);
-        setStreamResponse("");
+        setStreamedResponse("");
 
         const optimisticUserMessage: Doc<"messages"> = {
             _id: `temp_${Date.now()}`,
@@ -123,7 +124,7 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
                         case StreamMessageType.Token:
                             if ("token" in message) {
                                 fullResponse += message.token;
-                                setStreamResponse(fullResponse);
+                                setStreamedResponse(fullResponse);
                             }
                             break;
                         case StreamMessageType.ToolStart:
@@ -133,7 +134,7 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
                                     input: message.input,
                                 });
                                 fullResponse += formatTerminalOutput(message.tool as string, message.input, "Processing...");
-                                setStreamResponse(fullResponse);
+                                setStreamedResponse(fullResponse);
                             }
                             break;
                         case StreamMessageType.ToolEnd:
@@ -143,7 +144,7 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
                                 );
                                 if (lastTerminalIndex !== -1) {
                                     fullResponse = fullResponse.substring(0, lastTerminalIndex) + formatTerminalOutput(message.tool as string, currentTool.input, message.output);
-                                    setStreamResponse(fullResponse);
+                                    setStreamedResponse(fullResponse);
                                 }
                                 setCurrentTool(null);
                             }
@@ -171,7 +172,7 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
                             });
 
                             setMessages((prev) => [...prev, assistantMessage]);
-                            setStreamResponse("");
+                            setStreamedResponse("");
                             return;
                         default:
                             break;
@@ -183,7 +184,7 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
             setMessages((prev) =>
                 prev.filter((msg) => msg._id !== optimisticUserMessage._id)
             );
-            setStreamResponse(
+            setStreamedResponse(
                 formatTerminalOutput("Error", "Failed to process message", error instanceof Error ? error.message : "Unknown error")
             );
         } finally {
@@ -191,10 +192,13 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
         }
     }
     return (
-        <main className="flex flex-col h-[calc(100vh-theme(spacing.14))]">
+        <main className="flex flex-col h-[calc(100vh-theme(spacing.14))] ">
             {/* Message */}
-            <section className="flex-1 overflow-y-auto bg-gray-50 p-2 md:p-0">
-                <div className="max-w-4xl mx-auto space-y-3">
+            <section className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-0">
+                <div className="max-w-4xl mx-auto space-y-3 p-4">
+
+                    {/* Welcome Message */}
+                    {messages?.length === 0 && <WelcomeMessage />}
                     {messages?.map((message: Doc<"messages">) => (
                         <MessageBubble key={message._id} content={message.content} isUser={message.role === "user"} />
                     ))}
@@ -237,4 +241,4 @@ const chatInterface = ({ chatId, initialMessages }: chatInterfaceProps) => {
     )
 }
 
-export default chatInterface
+export default ChatInterface

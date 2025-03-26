@@ -5,7 +5,6 @@ import { END, MemorySaver, MessagesAnnotation, START, StateGraph } from "@langch
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import SYSTEM_MESSAGE from "@/constants/systemMessage";
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage, trimMessages } from "@langchain/core/messages";
-import { threadId } from "worker_threads";
 
 //Trim the mesage to manage conversation history
 const trimmer = trimMessages({
@@ -136,10 +135,9 @@ function addCacheHeaders(messages: BaseMessage[]): BaseMessage[] {
     return cacheMessages;
 }
 
-export async function submitQuestion(messages: BaseMessage[], chatId: string, maxRetries = 3, baseDelay = 1000) {
+export async function submitQuestion(messages: BaseMessage[], chatId: string, maxRetries = 3) {
     //Add caching headers to messages
-    const cacheMessages = addCacheHeaders(messages);
-    console.log("Messages:", messages);
+    const cachedMessages = addCacheHeaders(messages);
 
     const workflow = createWorkflow();
 
@@ -151,7 +149,7 @@ export async function submitQuestion(messages: BaseMessage[], chatId: string, ma
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
             const stream = await app.streamEvents(
-                { messages },
+                { messages: cachedMessages },
                 {
                     version: "v2",
                     configurable: {
