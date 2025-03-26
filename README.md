@@ -1,37 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vortex AI - Intelligent AI Chatbot
 
-## Getting Started
+Vortex AI is a full-stack AI-powered chatbot built with Next.js 15, LangChain, Clerk, Convex, and IBM wxflows. It supports real-time AI responses, tool integrations, streaming messages, and user authentication.
 
-First, run the development server:
+## 🚀 Features
+- **Real-time AI Chat**: Responsive AI assistant using Claude 3.5 Sonnet.
+- **Streaming AI Responses**: Efficient token streaming for smooth conversation flow.
+- **Tool Augmentation**: Integration with external tools using LangChain & wxflows.
+- **Authentication & User Management**: Secured using Clerk.
+- **Persistent Chat History**: Stored and managed using Convex.
+- **Custom Streaming & Error Handling**: Optimized AI-generated responses.
+- **Deployed on Vercel**: Ready to use in production.
 
+## 🛠️ Tech Stack
+- **Frontend**: Next.js 15, TypeScript, React
+- **Backend**: Convex (real-time database), LangChain, wxflows
+- **AI Model**: Claude 3.5 Sonnet
+- **Authentication**: Clerk
+- **Hosting**: Vercel
+
+## 🔧 Setup & Installation
+
+### 1️⃣ Clone the Repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Kunalsarkar404/Vortex-AI.git
+cd Vortex-AI
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2️⃣ Install Dependencies
+```bash
+npm install  # or yarn install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3️⃣ Set Up Environment Variables
+Create a `.env.local` file in the root directory and add:
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+CONVEX_DEPLOY_KEY=your_convex_deploy_key
+NEXT_PUBLIC_CONVEX_URL=your_convex_url
+IBM_WXFLOWS_API_KEY=your_ibm_wxflows_api_key
+AI_MODEL_API_KEY=your_claude_api_key
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4️⃣ Start the Development Server
+```bash
+npm run dev  # or yarn dev
+```
 
-## Learn More
+## 🚀 Deployment
+Deploy easily on Vercel:
+```bash
+git push origin master  # Push to GitHub
+vercel --prod  # Deploy to Vercel
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📸 Screenshots
+![AI Agent Screenshot](assets/image1.png)
+![Chat Interface Preview](assets/image2.png)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🤝 Contributing
+Contributions are welcome! Feel free to open issues or submit pull requests.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🌟 Show Your Support
+If you found this useful, give it a ⭐ on GitHub!
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Vortex-AI
+🔗 **Live Demo**: [Vortex AI](https://vortex-amg4hv1xr-kunalsarkar404s-projects.vercel.app/)
